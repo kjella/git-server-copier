@@ -61,9 +61,15 @@ def gather_clone_urls(organization, no_forks=True):
 
 
 def push_repo(repo):
+  print "Pushing commit history for repo: " + repo.name
+  global git_dest_url
+  global git_dest_org
+
   base_path = os.path.abspath(os.path.join('repos', repo.owner.login))
   repo_path = os.path.join(base_path, repo.name)
-  change_server_cmd = "git config --replace-all remote.origin.url %s/%s.git" % (git_dest_url, repo.name)
+  print "Changing remote.origin.url to " + git_dest_url
+  change_server_cmd = "git config --replace-all remote.origin.url git@%s:%s/%s.git" % (git_dest_url, git_dest_org, repo.name)
+  print "cmd: " + change_server_cmd
   try:
     p = None
     p = subprocess.Popen(change_server_cmd, shell=True, cwd=repo_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -117,6 +123,7 @@ def create_repo(repo):
     print "No existing repo found! Creating new"
     create_json = "{ \"name\": \"%s\",\n \"description\": \"An app responsible for copying Github repos to our Evry Enterprise installation, created this repo. Code by your friendly nerd kjella\",\n \"homepage\": \"https://git.evry.cloud\",\n \"private\": true,\n \"has_issues\": true,\n \"has_projects\": false,\n \"has_wiki\": false }" % repo.name
     cmd = "curl -X POST -k -H 'Authorization: bearer %s' -i '%s/orgs/%s/repos' --data '%s'" % (git_dest_token, git_dest_url_api, git_dest_org, create_json)
+
     try:
       p = None
       p = subprocess.Popen(cmd, shell=True, cwd=base_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -130,9 +137,11 @@ def create_repo(repo):
     except Exception, err:
       return False
       print err
+
+    return True
   else:
     print "Repo with name '%s' already exists! Skipping..." % repo.name
-  return True
+    return False
 
 
 def clone_repo(repo):
