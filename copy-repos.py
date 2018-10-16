@@ -98,7 +98,7 @@ def create_repo(repo):
   repo_exists_api_url = "%s/repos/%s/%s" % (git_dest_url_api, git_dest_org, repo.name)
   repo_exists_query = "curl -X GET -k -H 'Authorization: bearer %s' -I '%s'" % (git_dest_token, repo_exists_api_url)
 
-  print "REPO API call: %s" % repo_exists_query
+  # print "REPO API call: %s" % repo_exists_query
   out = None
   try:
     p = None
@@ -112,7 +112,7 @@ def create_repo(repo):
   except Exception, err:
     print err
 
-  print "Queried to see if " + repo.name + " exists. Answer is: " + out
+  # print "Queried to see if " + repo.name + " exists. Answer is: " + out
   if (out.find('HTTP/1.1 200 OK') == -1):
     print "No existing repo found! Creating new"
     create_json = "{ \"name\": \"%s\",\n \"description\": \"An app responsible for copying Github repos to our Evry Enterprise installation, created this repo. Code by your friendly nerd kjella\",\n \"homepage\": \"https://git.evry.cloud\",\n \"private\": true,\n \"has_issues\": true,\n \"has_projects\": false,\n \"has_wiki\": false }" % repo.name
@@ -130,6 +130,8 @@ def create_repo(repo):
     except Exception, err:
       return False
       print err
+  else:
+    print "Repo with name '%s' already exists! Skipping..." % repo.name
   return True
 
 
