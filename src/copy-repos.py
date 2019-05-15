@@ -19,7 +19,7 @@ GitHub organization or user::
 import os
 import sys
 import subprocess
-import pygithub3
+from github import Github
 import argparse
 import re
 
@@ -61,15 +61,15 @@ def gather_clone_urls(organization, no_forks=True):
 
 
 def push_repo(repo):
-  print "Pushing commit history for repo: " + repo.name
+  print("Pushing commit history for repo: " + repo.name)
   global git_dest_url
   global git_dest_org
 
   base_path = os.path.abspath(os.path.join('repos', repo.owner.login))
   repo_path = os.path.join(base_path, repo.name)
-  print "Changing remote.origin.url to " + git_dest_url
+  print("Changing remote.origin.url to " + git_dest_url)
   change_server_cmd = "git config --replace-all remote.origin.url git@%s:%s/%s.git" % (git_dest_url, git_dest_org, repo.name)
-  print "cmd: " + change_server_cmd
+  print("cmd: " + change_server_cmd)
   try:
     p = None
     p = subprocess.Popen(change_server_cmd, shell=True, cwd=repo_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -78,9 +78,9 @@ def push_repo(repo):
 
   except subprocess.CalledProcessError as e:
     # add an error for the exception
-    print e
-  except Exception, err:
-    print err
+    print(e)
+  except Exception as err:
+    print(err)
 
   push_changes_cmd = "git push --force"
   try:
@@ -91,9 +91,9 @@ def push_repo(repo):
 
   except subprocess.CalledProcessError as e:
     # add an error for the exception
-    print e
-  except Exception, err:
-    print err
+    print(e)
+  except Exception as err:
+    print(err)
 
 
 def create_repo(repo):
@@ -114,13 +114,13 @@ def create_repo(repo):
 
   except subprocess.CalledProcessError as e:
     # add an error for the exception
-    print e
-  except Exception, err:
-    print err
+    print(e)
+  except Exception as err:
+    print(err)
 
   # print "Queried to see if " + repo.name + " exists. Answer is: " + out
   if (out.find('HTTP/1.1 200 OK') == -1):
-    print "No existing repo found! Creating new"
+    print("No existing repo found! Creating new")
     create_json = "{ \"name\": \"%s\",\n \"description\": \"An app responsible for copying Github repos to our Evry Enterprise installation, created this repo. Code by your friendly nerd kjella\",\n \"homepage\": \"https://git.evry.cloud\",\n \"private\": true,\n \"has_issues\": true,\n \"has_projects\": false,\n \"has_wiki\": false }" % repo.name
     cmd = "curl -X POST -k -H 'Authorization: bearer %s' -i '%s/orgs/%s/repos' --data '%s'" % (git_dest_token, git_dest_url_api, git_dest_org, create_json)
 
@@ -130,13 +130,13 @@ def create_repo(repo):
       # block for the output, should be multi-threaded
       out, err = p.communicate()
 
-    except subprocess.CalledProcessError, e:
+    except subprocess.CalledProcessError as e:
       # add an error for the exception
       return False
-      print e
-    except Exception, err:
+      print(e)
+    except Exception as err:
       return False
-      print err
+      print(err)
 
     return True
   else:
@@ -230,8 +230,8 @@ def validate_variables():
 
     filter_org_name = args.filter_org_name
   except Exception as err:
-    print "An error happened when trying to load environment variable %s " % err
-    print "Please ensure that the variable exists"
+    print("An error happened when trying to load environment variable %s " % err)
+    print("Please ensure that the variable exists")
     sys.exit(2)
 
 
@@ -240,7 +240,7 @@ def main():
   global gh
   global filter_org_name
 
-  gh = pygithub3.Github(login=git_source_username, password=git_source_password)
+  gh = Github(login=git_source_username, password=git_source_password)
   repos = gather_clone_urls(git_source_org)
 
   p = re.compile(filter_org_name)
